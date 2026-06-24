@@ -377,8 +377,6 @@ dns:
   nameserver:
     - "tls://8.8.8.8"
     - "tls://1.1.1.1"
-    - "https://doh.pub/dns-query"
-    - "https://dns.alidns.com/dns-query"
     - "system://"
   fallback:
     - "tls://8.8.4.4"
