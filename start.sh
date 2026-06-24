@@ -397,6 +397,32 @@ EOF
     log_info "✅ DNS 配置已覆写"
     }
 
+# 注入 IPv6 配置
+inject_ipv6() {
+    local config="$1"
+    local ipv6_enabled="$2"
+
+    [ "${ipv6_enabled}" != "true" ] && return 0
+
+    log_info "🔗 正在注入 IPv6 配置..."
+
+    # 添加顶层 ipv6: true（如果不存在）
+    if ! grep -qE "^ipv6:" "${config}"; then
+        sed_inplace "1i ipv6: true" "${config}"
+    else
+        sed_inplace "s/^ipv6:.*$/ipv6: true/" "${config}"
+    fi
+
+    # 添加 dns.ipv6: true（如果不存在）
+    if grep -qE "^dns:" "${config}"; then
+        if ! grep -qE "^\s+ipv6:" "${config}"; then
+            sed_inplace "/^dns:/a\  ipv6: true" "${config}"
+        fi
+    fi
+
+    log_info "✅ IPv6 配置已注入"
+}
+
 
 # 更新配置文件中的 allow-lan
 update_allow_lan() {
@@ -555,6 +581,7 @@ update_subscription() {
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
+        inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
 
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
@@ -603,6 +630,7 @@ SECRET=${SECRET}
 ALLOW_LAN=${ALLOW_LAN}
 TUN_ENABLED=${TUN_ENABLED}
 DNS_OVERRIDE=${DNS_OVERRIDE}
+IPV6_ENABLED=${IPV6_ENABLED}
 SUB_USER_AGENT=${SUB_USER_AGENT}
 AUTHENTICATION=${AUTHENTICATION}
 ${cron_schedule} /app/update_sub.sh >> /var/log/subscription.log 2>&1
@@ -644,6 +672,7 @@ TUN_ENABLED=$(echo "${TUN_ENABLED}" | sed "s/^['\"]//;s/['\"]$//")
 DNS_OVERRIDE=$(echo "${DNS_OVERRIDE}" | sed "s/^['\"]//;s/['\"]$//")
 SUB_USER_AGENT=$(echo "${SUB_USER_AGENT}" | sed "s/^['\"]//;s/['\"]$//")
 AUTHENTICATION=$(echo "${AUTHENTICATION}" | sed "s/^['\"]//;s/['\"]$//")
+IPV6_ENABLED=$(echo "${IPV6_ENABLED}" | sed "s/^['\"]//;s/['\"]$//")
 
 # 确保配置目录存在
 mkdir -p "${CONFIG_DIR}"
@@ -694,6 +723,7 @@ if [ -n "${SUB_URL}" ]; then
             # 注入 tun 配置
             inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
+        inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
             ensure_external_controller "${CONFIG_FILE}"
             
             if start_mihomo; then
@@ -747,6 +777,7 @@ if [ -n "${SUB_URL}" ]; then
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
+        inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
         ensure_external_controller "${CONFIG_FILE}"
 
         # ========== 新增：执行外部 Hook ==========
@@ -807,6 +838,7 @@ if [ -n "${SUB_URL}" ]; then
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
+        inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
 
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
@@ -852,6 +884,7 @@ else
 
     # 注入 tun 配置
     inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
+    inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
 
     # 确保 external-controller 配置正确
     ensure_external_controller "${CONFIG_FILE}"

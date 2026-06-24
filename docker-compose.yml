@@ -38,6 +38,8 @@ services:
       - TUN_ENABLED=true
       # DNS 覆写开关
       - DNS_OVERRIDE=true
+      # IPv6 开关
+      - IPV6_ENABLED=true
 
 
     # 如果需要 TUN 模式，取消下面的注释

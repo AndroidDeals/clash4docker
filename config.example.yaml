@@ -18,7 +18,7 @@ mode: rule
 # 日志级别: silent / error / warning / info / debug
 log-level: info
 # IPv6 支持
-ipv6: false
+ipv6: true
 
 # ==================== API 控制器 ====================
 # 外部控制器 (Dashboard 需要此配置)
@@ -33,7 +33,7 @@ secret: 'your-secret-here'
 dns:
   enable: true
   listen: 0.0.0.0:53
-  ipv6: false
+  ipv6: true
   default-nameserver:
     - 223.5.5.5
     - 119.29.29.29
