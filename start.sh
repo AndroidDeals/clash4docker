@@ -366,6 +366,7 @@ dns:
     - "223.5.5.5"
   enhanced-mode: "fake-ip"
   fake-ip-range: "198.18.0.1/16"
+  fake-ip-range-v6: "fd00::/112"
   fake-ip-filter:
     - "*.lan"
     - "localhost.ptlogin2.qq.com"
@@ -376,12 +377,14 @@ dns:
   nameserver:
     - "https://doh.pub/dns-query"
     - "https://dns.alidns.com/dns-query"
+    - "tls://8.8.8.8"
     - "system://"
   fallback:
     - "tls://8.8.4.4"
     - "tls://1.1.1.1"
   proxy-server-nameserver:
-    - "https://doh.pub/dns-query"
+    - "tls://8.8.8.8"
+    - "tls://1.1.1.1"
   fallback-filter:
     geoip: true
     geoip-code: "CN"
