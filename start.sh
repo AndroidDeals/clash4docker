@@ -375,9 +375,10 @@ dns:
     +.internal.crop.com: "10.0.0.1"
     geosite:cn: "https://doh.pub/dns-query"
   nameserver:
+    - "tls://8.8.8.8"
+    - "tls://1.1.1.1"
     - "https://doh.pub/dns-query"
     - "https://dns.alidns.com/dns-query"
-    - "tls://8.8.8.8"
     - "system://"
   fallback:
     - "tls://8.8.4.4"
