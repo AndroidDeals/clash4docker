@@ -371,16 +371,13 @@ dns:
     - "*.lan"
     - "localhost.ptlogin2.qq.com"
   nameserver-policy:
-    www.baidu.com: "114.114.114.114"
-    +.internal.crop.com: "10.0.0.1"
     geosite:cn: "https://doh.pub/dns-query"
+    geosite:geolocation-!cn: "tls://8.8.8.8"
   nameserver:
     - "tls://8.8.8.8"
     - "tls://1.1.1.1"
-    - "system://"
   fallback:
-    - "tls://8.8.4.4"
-    - "tls://1.1.1.1"
+    - "tls://8.8.8.8"
   proxy-server-nameserver:
     - "tls://8.8.8.8"
     - "tls://1.1.1.1"
@@ -391,10 +388,6 @@ dns:
       - "gfw"
     ipcidr:
       - "240.0.0.0/4"
-    domain:
-      - "+.google.com"
-      - "+.facebook.com"
-      - "+.youtube.com"
 EOF
     log_info "✅ DNS 配置已覆写"
     }

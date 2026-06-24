@@ -52,6 +52,7 @@ dns:
     - https://dns.alidns.com/dns-query
   nameserver-policy:
     geosite:cn: "https://doh.pub/dns-query"
+    geosite:geolocation-!cn: "tls://8.8.8.8"
   fallback-filter:
     geoip: true
     geoip-code: CN
