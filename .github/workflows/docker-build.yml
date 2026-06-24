@@ -2,11 +2,7 @@ name: Build and Push Docker Image on Release
 
 on:
   release:
-    types: [published]  # 核心：监听手动发布Release的动作
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+    types: [published]
 
 jobs:
   build-and-push:
@@ -19,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}  # 关键：检出这个特定Tag的代码
+          ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
 
       - name: Extract version from Release Tag
@@ -28,9 +24,11 @@ jobs:
           RELEASE_TAG="${{ github.event.release.tag_name }}"
           NEW_VERSION="${RELEASE_TAG#v}"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "new_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
 
-      # 注意：这里删除了原来的 'Create and push new tag' 步骤
+      - name: Set image name (lowercase)
+        id: image
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -52,8 +50,8 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.new_version }}
+            ${{ steps.image.outputs.name }}:latest
+            ${{ steps.image.outputs.name }}:${{ steps.version.outputs.new_version }}
           labels: |
             org.opencontainers.image.version=${{ steps.version.outputs.new_version }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
