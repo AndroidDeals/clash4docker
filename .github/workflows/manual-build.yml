@@ -45,7 +45,6 @@ jobs:
           path: /tmp/clash4docker-image-amd64.tar.gz
 
       - name: Upload to Release
-        if: startsWith(inputs.version, 'v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
