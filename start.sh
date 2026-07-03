@@ -343,15 +343,25 @@ EOF
 #   listen: 0.0.0.0:1053
 #   default-nameserver:
 #     - 223.5.5.5
-#     - 1.1.1.1
 #   enhanced-mode: fake-ip
 #   fake-ip-range: 198.18.0.1/16
 #   fake-ip-filter:
 #     - "*.lan"
 #     - "*.localhost"
 #   nameserver:
-#     - https://dns.alidns.com/dns-query
 #     - https://doh.pub/dns-query
+#     - https://dns.alidns.com/dns-query
+#   fallback:
+#     - tls://8.8.8.8
+#     - tls://1.1.1.1
+#   proxy-server-nameserver:
+#     - https://doh.pub/dns-query
+#   fallback-filter:
+#     geoip: false
+#     geosite:
+#       - gfw
+#     ipcidr:
+#       - 240.0.0.0/4
 
     cat >> "${config}" << 'EOF'
 dns:
@@ -372,18 +382,16 @@ dns:
     - "localhost.ptlogin2.qq.com"
   nameserver-policy:
     geosite:cn: "https://doh.pub/dns-query"
-    geosite:geolocation-!cn: "tls://8.8.8.8"
   nameserver:
-    - "tls://8.8.8.8"
-    - "tls://1.1.1.1"
+    - "https://doh.pub/dns-query"
+    - "https://dns.alidns.com/dns-query"
   fallback:
     - "tls://8.8.8.8"
-  proxy-server-nameserver:
-    - "tls://8.8.8.8"
     - "tls://1.1.1.1"
+  proxy-server-nameserver:
+    - "https://doh.pub/dns-query"
   fallback-filter:
-    geoip: true
-    geoip-code: "CN"
+    geoip: false
     geosite:
       - "gfw"
     ipcidr:
