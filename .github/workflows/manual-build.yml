@@ -16,64 +16,44 @@ jobs:
       contents: write
       packages: write
 
-    strategy:
-      matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image (${{ matrix.platform }})
+      - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64
           load: true
           tags: clash4docker:${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Save image as tar (${{ matrix.platform }})
+      - name: Save image as tar
         run: |
-          ARCH=$(echo "${{ matrix.platform }}" | tr '/' '-')
-          docker save clash4docker:${{ inputs.version }} | gzip > /tmp/clash4docker-image-${ARCH}.tar.gz
-          ls -lh /tmp/clash4docker-image-${ARCH}.tar.gz
+          docker save clash4docker:${{ inputs.version }} | gzip > /tmp/clash4docker-image-amd64.tar.gz
+          ls -lh /tmp/clash4docker-image-amd64.tar.gz
 
-      - name: Upload as artifact (${{ matrix.platform }})
+      - name: Upload as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: clash4docker-image-${{ inputs.version }}-${{ matrix.platform }}
-          path: /tmp/clash4docker-image-*.tar.gz
+          name: clash4docker-image-${{ inputs.version }}
+          path: /tmp/clash4docker-image-amd64.tar.gz
 
-  release:
-    needs: build
-    if: startsWith(inputs.version, 'v')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Upload images to Release
+      - name: Upload to Release
+        if: startsWith(inputs.version, 'v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ls -R
           TAG="${{ inputs.version }}"
           if gh release view "$TAG" --repo ${{ github.repository }} &>/dev/null; then
-            gh release upload "$TAG" clash4docker-image-*/clash4docker-image-*.tar.gz --clobber --repo ${{ github.repository }}
+            gh release upload "$TAG" /tmp/clash4docker-image-amd64.tar.gz --clobber --repo ${{ github.repository }}
           else
-            gh release create "$TAG" clash4docker-image-*/clash4docker-image-*.tar.gz \
+            gh release create "$TAG" /tmp/clash4docker-image-amd64.tar.gz \
               --title "$TAG" \
               --generate-notes \
               --repo ${{ github.repository }}
