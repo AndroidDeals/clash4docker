@@ -343,6 +343,7 @@ EOF
 #   listen: 0.0.0.0:1053
 #   default-nameserver:
 #     - 223.5.5.5
+#     - 2400:3200::1
 #   enhanced-mode: fake-ip
 #   fake-ip-range: 198.18.0.1/16
 #   fake-ip-filter:
@@ -352,8 +353,8 @@ EOF
 #     - https://doh.pub/dns-query
 #     - https://dns.alidns.com/dns-query
 #   fallback:
-#     - tls://8.8.8.8
-#     - tls://1.1.1.1
+#     - tls://[2001:4860:4860::8888]
+#     - tls://[2606:4700:4700::1111]
 #   proxy-server-nameserver:
 #     - https://doh.pub/dns-query
 #   fallback-filter:
@@ -374,6 +375,7 @@ dns:
   ipv6: true
   default-nameserver:
     - "223.5.5.5"
+    - "2400:3200::1"
   enhanced-mode: "fake-ip"
   fake-ip-range: "198.18.0.1/16"
   fake-ip-range-v6: "fd00::/112"
@@ -386,10 +388,11 @@ dns:
     - "https://doh.pub/dns-query"
     - "https://dns.alidns.com/dns-query"
   fallback:
-    - "tls://8.8.8.8"
-    - "tls://1.1.1.1"
+    - "tls://[2001:4860:4860::8888]"
+    - "tls://[2606:4700:4700::1111]"
   proxy-server-nameserver:
     - "https://doh.pub/dns-query"
+    - "https://dns.alidns.com/dns-query"
   fallback-filter:
     geoip: false
     geosite:

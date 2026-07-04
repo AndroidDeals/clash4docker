@@ -1,4 +1,4 @@
-name: Manual Docker Build
+name: Manual Release Build
 
 on:
   workflow_dispatch:
@@ -19,6 +19,24 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: release
+        run: |
+          VERSION_INPUT='${{ inputs.version }}'
+          if [ -z "$VERSION_INPUT" ] || [ "$VERSION_INPUT" = "latest" ]; then
+            VERSION_INPUT="manual-${GITHUB_SHA::7}"
+          fi
+
+          case "$VERSION_INPUT" in
+            v*) TAG="$VERSION_INPUT" ;;
+            *) TAG="v$VERSION_INPUT" ;;
+          esac
+
+          echo "version=$VERSION_INPUT" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -29,31 +47,47 @@ jobs:
           context: .
           platforms: linux/amd64
           load: true
-          tags: clash4docker:${{ inputs.version }}
+          tags: clash4docker:${{ steps.release.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Save image as tar
         run: |
-          docker save clash4docker:${{ inputs.version }} | gzip > /tmp/clash4docker-image-amd64.tar.gz
+          docker save clash4docker:${{ steps.release.outputs.version }} | gzip > /tmp/clash4docker-image-amd64.tar.gz
           ls -lh /tmp/clash4docker-image-amd64.tar.gz
 
       - name: Upload as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: clash4docker-image-${{ inputs.version }}
+          name: clash4docker-image-${{ steps.release.outputs.version }}
           path: /tmp/clash4docker-image-amd64.tar.gz
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG='${{ steps.release.outputs.tag }}'
+          TITLE='${{ steps.release.outputs.tag }}'
+
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release edit "$TAG" \
+              --title "$TITLE" \
+              --latest \
+              --repo "${{ github.repository }}"
+          else
+            gh release create "$TAG" \
+              --target "${{ github.sha }}" \
+              --title "$TITLE" \
+              --generate-notes \
+              --latest \
+              --repo "${{ github.repository }}"
+          fi
 
       - name: Upload to Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${{ inputs.version }}"
-          if gh release view "$TAG" --repo ${{ github.repository }} &>/dev/null; then
-            gh release upload "$TAG" /tmp/clash4docker-image-amd64.tar.gz --clobber --repo ${{ github.repository }}
-          else
-            gh release create "$TAG" /tmp/clash4docker-image-amd64.tar.gz \
-              --title "$TAG" \
-              --generate-notes \
-              --repo ${{ github.repository }}
-          fi
+          TAG='${{ steps.release.outputs.tag }}'
+          gh release upload "$TAG" /tmp/clash4docker-image-amd64.tar.gz \
+            --clobber \
+            --repo "${{ github.repository }}"
