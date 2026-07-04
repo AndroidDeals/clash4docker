@@ -397,6 +397,10 @@ dns:
   proxy-server-nameserver:
     - "https://dns.google/dns-query"
     - "https://cloudflare-dns.com/dns-query"
+  direct-nameserver:
+    - "https://doh.pub/dns-query"
+    - "https://dns.alidns.com/dns-query"
+  direct-nameserver-follow-policy: true
   fallback-filter:
     geoip: true
     geoip-code: "CN"
