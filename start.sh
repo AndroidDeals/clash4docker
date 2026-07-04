@@ -342,19 +342,19 @@ EOF
 #   enable: true
 #   listen: 0.0.0.0:1053
 #   default-nameserver:
-#     - 223.5.5.5
 #     - 2400:3200::1
+#     - 223.5.5.5
 #   enhanced-mode: fake-ip
 #   fake-ip-range: 198.18.0.1/16
 #   fake-ip-filter:
 #     - "*.lan"
 #     - "*.localhost"
 #   nameserver:
-#     - https://doh.pub/dns-query
-#     - https://dns.alidns.com/dns-query
+#     - https://dns.google/dns-query
+#     - https://cloudflare-dns.com/dns-query
 #   fallback:
-#     - tls://[2001:4860:4860::8888]
-#     - tls://[2606:4700:4700::1111]
+#     - https://dns.google/dns-query
+#     - https://cloudflare-dns.com/dns-query
 #   proxy-server-nameserver:
 #     - https://doh.pub/dns-query
 #   fallback-filter:
@@ -374,29 +374,32 @@ dns:
   respect-rules: false
   ipv6: true
   default-nameserver:
-    - "223.5.5.5"
     - "2400:3200::1"
+    - "223.5.5.5"
   enhanced-mode: "fake-ip"
   fake-ip-range: "198.18.0.1/16"
   fake-ip-range-v6: "fd00::/112"
   fake-ip-filter:
     - "*.lan"
+    - "*.local"
+    - "*.localhost"
     - "localhost.ptlogin2.qq.com"
   nameserver-policy:
-    geosite:cn: "https://doh.pub/dns-query"
+    geosite:youtube: "https://dns.google/dns-query"
+    geosite:google: "https://dns.google/dns-query"
+    geosite:cn:
+      - "https://doh.pub/dns-query"
+      - "https://dns.alidns.com/dns-query"
   nameserver:
-    - "https://doh.pub/dns-query"
-    - "https://dns.alidns.com/dns-query"
+    - "https://dns.google/dns-query"
   fallback:
-    - "tls://[2001:4860:4860::8888]"
-    - "tls://[2606:4700:4700::1111]"
+    - "https://cloudflare-dns.com/dns-query"
   proxy-server-nameserver:
-    - "https://doh.pub/dns-query"
-    - "https://dns.alidns.com/dns-query"
+    - "https://dns.google/dns-query"
+    - "https://cloudflare-dns.com/dns-query"
   fallback-filter:
-    geoip: false
-    geosite:
-      - "gfw"
+    geoip: true
+    geoip-code: "CN"
     ipcidr:
       - "240.0.0.0/4"
 EOF
