@@ -462,9 +462,9 @@ inject_sniffer() {
 sniffer:
   enable: true
   sniff:
-    TLS: true
-    HTTP: true
-    QUIC: true
+    - TLS
+    - HTTP
+    - QUIC
   force-dns-mapping: true
   parse-pure-ip: true
   skip-domain:
