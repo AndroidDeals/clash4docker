@@ -384,27 +384,28 @@ dns:
     - "*.local"
     - "*.localhost"
     - "localhost.ptlogin2.qq.com"
-    - "dns.google"
-    - "dns.cloudflare.com"
-    - "cloudflare-dns.com"
-    - "doh.pub"
-    - "dns.alidns.com"
   nameserver-policy:
-    geosite:youtube: "https://dns.google/dns-query"
-    geosite:google: "https://dns.google/dns-query"
+    geosite:youtube:
+      - "8.8.8.8"
+      - "1.1.1.1"
+    geosite:google:
+      - "8.8.8.8"
+      - "1.1.1.1"
     geosite:cn:
-      - "https://doh.pub/dns-query"
-      - "https://dns.alidns.com/dns-query"
+      - "223.5.5.5"
+      - "2400:3200::1"
   nameserver:
-    - "https://dns.google/dns-query"
+    - "223.5.5.5"
+    - "2400:3200::1"
   fallback:
-    - "https://cloudflare-dns.com/dns-query"
+    - "8.8.8.8"
+    - "1.1.1.1"
   proxy-server-nameserver:
     - "223.5.5.5"
     - "2400:3200::1"
   direct-nameserver:
-    - "https://doh.pub/dns-query"
-    - "https://dns.alidns.com/dns-query"
+    - "223.5.5.5"
+    - "2400:3200::1"
   direct-nameserver-follow-policy: true
   fallback-filter:
     geoip: true
