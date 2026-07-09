@@ -30,6 +30,17 @@ jobs:
         run: |
           echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
+      - name: Fetch latest upstream versions
+        id: upstream
+        run: |
+          MIHOMO_VER=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | \
+            grep '"tag_name":' | sed 's/.*"\(.*\)".*/\1/')
+          METACUBEXD_VER=$(curl -s https://api.github.com/repos/MetaCubeX/metacubexd/releases/latest | \
+            grep '"tag_name":' | sed 's/.*"\(.*\)".*/\1/')
+          echo "mihomo=$MIHOMO_VER" >> "$GITHUB_OUTPUT"
+          echo "metacubexd=$METACUBEXD_VER" >> "$GITHUB_OUTPUT"
+          echo "Latest: mihomo=$MIHOMO_VER  metacubexd=$METACUBEXD_VER"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -49,6 +60,9 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
+          build-args: |
+            MIHOMO_VERSION=${{ steps.upstream.outputs.mihomo }}
+            METACUBEXD_VERSION=${{ steps.upstream.outputs.metacubexd }}
           tags: |
             ${{ steps.image.outputs.name }}:latest
             ${{ steps.image.outputs.name }}:${{ steps.version.outputs.new_version }}

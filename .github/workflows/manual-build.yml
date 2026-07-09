@@ -38,6 +38,17 @@ jobs:
           echo "version=$VERSION_INPUT" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
+      - name: Fetch latest upstream versions
+        id: upstream
+        run: |
+          MIHOMO_VER=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | \
+            grep '"tag_name":' | sed 's/.*"\(.*\)".*/\1/')
+          METACUBEXD_VER=$(curl -s https://api.github.com/repos/MetaCubeX/metacubexd/releases/latest | \
+            grep '"tag_name":' | sed 's/.*"\(.*\)".*/\1/')
+          echo "mihomo=$MIHOMO_VER" >> "$GITHUB_OUTPUT"
+          echo "metacubexd=$METACUBEXD_VER" >> "$GITHUB_OUTPUT"
+          echo "Latest: mihomo=$MIHOMO_VER  metacubexd=$METACUBEXD_VER"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -47,6 +58,9 @@ jobs:
           context: .
           platforms: linux/amd64
           load: true
+          build-args: |
+            MIHOMO_VERSION=${{ steps.upstream.outputs.mihomo }}
+            METACUBEXD_VERSION=${{ steps.upstream.outputs.metacubexd }}
           tags: clash4docker:${{ steps.release.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
