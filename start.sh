@@ -311,6 +311,9 @@ tun:
   auto-route: true
   auto-redirect: true
   auto-detect-interface: true
+  dns-hijack:
+    - any:53
+    - tcp://any:53
 EOF
         log_info "✅ tun 模式已启用"
     else
@@ -384,6 +387,11 @@ dns:
     - "*.local"
     - "*.localhost"
     - "localhost.ptlogin2.qq.com"
+    - "dns.google"
+    - "dns.cloudflare.com"
+    - "cloudflare-dns.com"
+    - "doh.pub"
+    - "dns.alidns.com"
   nameserver-policy:
     geosite:youtube: "https://dns.google/dns-query"
     geosite:google: "https://dns.google/dns-query"
@@ -395,8 +403,8 @@ dns:
   fallback:
     - "https://cloudflare-dns.com/dns-query"
   proxy-server-nameserver:
-    - "https://dns.google/dns-query"
-    - "https://cloudflare-dns.com/dns-query"
+    - "223.5.5.5"
+    - "2400:3200::1"
   direct-nameserver:
     - "https://doh.pub/dns-query"
     - "https://dns.alidns.com/dns-query"
@@ -434,6 +442,42 @@ inject_ipv6() {
     fi
 
     log_info "✅ IPv6 配置已注入"
+}
+
+# 注入 Sniffer 配置（自动嗅探 TLS/QUIC/UDP 流量）
+# 参数: config, sniffer_enabled (true/false)
+# 若为 true 则注入 sniffer 配置，为空或 false 不做修改
+inject_sniffer() {
+    local config="$1"
+    local sniffer_enabled="$2"
+
+    [ "${sniffer_enabled}" != "true" ] && return 0
+
+    log_info "🔗 正在注入 sniffer 配置..."
+
+    # 移除现有的 sniffer 配置块
+    local temp_file=$(mktemp)
+    awk '/^sniffer:/{skip=1; next} skip && /^[a-zA-Z]/{skip=0} !skip{print}' "${config}" > "${temp_file}"
+    cp -f "${temp_file}" "${config}"
+    rm -f "${temp_file}"
+
+    cat >> "${config}" << 'EOF'
+sniffer:
+  enable: true
+  sniff:
+    TLS: true
+    HTTP: true
+    QUIC: true
+  force-dns-mapping: true
+  parse-pure-ip: true
+  skip-domain:
+    - "*.lan"
+    - "*.local"
+    - "*.localhost"
+    - "dns.google"
+    - "push.*"
+EOF
+    log_info "✅ sniffer 配置已注入"
 }
 
 
@@ -595,6 +639,7 @@ update_subscription() {
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
         inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
+        inject_sniffer "${CONFIG_FILE}" "${SNIFFER_ENABLED}"
 
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
@@ -686,6 +731,7 @@ DNS_OVERRIDE=$(echo "${DNS_OVERRIDE}" | sed "s/^['\"]//;s/['\"]$//")
 SUB_USER_AGENT=$(echo "${SUB_USER_AGENT}" | sed "s/^['\"]//;s/['\"]$//")
 AUTHENTICATION=$(echo "${AUTHENTICATION}" | sed "s/^['\"]//;s/['\"]$//")
 IPV6_ENABLED=$(echo "${IPV6_ENABLED}" | sed "s/^['\"]//;s/['\"]$//")
+SNIFFER_ENABLED=$(echo "${SNIFFER_ENABLED}" | sed "s/^['\"]//;s/['\"]$//")
 
 # 确保配置目录存在
 mkdir -p "${CONFIG_DIR}"
@@ -737,6 +783,7 @@ if [ -n "${SUB_URL}" ]; then
             inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
         inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
+        inject_sniffer "${CONFIG_FILE}" "${SNIFFER_ENABLED}"
             ensure_external_controller "${CONFIG_FILE}"
             
             if start_mihomo; then
@@ -791,6 +838,7 @@ if [ -n "${SUB_URL}" ]; then
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
         inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
+        inject_sniffer "${CONFIG_FILE}" "${SNIFFER_ENABLED}"
         ensure_external_controller "${CONFIG_FILE}"
 
         # ========== 新增：执行外部 Hook ==========
@@ -852,6 +900,7 @@ if [ -n "${SUB_URL}" ]; then
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
         inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
+        inject_sniffer "${CONFIG_FILE}" "${SNIFFER_ENABLED}"
 
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
@@ -859,7 +908,7 @@ if [ -n "${SUB_URL}" ]; then
         # ========== 新增：执行外部 Hook ==========
         if ! run_post_subscription_hooks "${CONFIG_FILE}"; then
             log_error "❌ 执行外部Hook失败"
-            return 1
+
         fi
         # ========================================
 
@@ -898,6 +947,7 @@ else
     # 注入 tun 配置
     inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
     inject_ipv6 "${CONFIG_FILE}" "${IPV6_ENABLED}"
+    inject_sniffer "${CONFIG_FILE}" "${SNIFFER_ENABLED}"
 
     # 确保 external-controller 配置正确
     ensure_external_controller "${CONFIG_FILE}"

@@ -49,13 +49,18 @@ dns:
     - '*.local'
     - '*.localhost'
     - localhost.ptlogin2.qq.com
+    - dns.google
+    - dns.cloudflare.com
+    - cloudflare-dns.com
+    - doh.pub
+    - dns.alidns.com
   nameserver:
     - https://dns.google/dns-query
   fallback:
     - https://cloudflare-dns.com/dns-query
   proxy-server-nameserver:
-    - https://dns.google/dns-query
-    - https://cloudflare-dns.com/dns-query
+    - 223.5.5.5
+    - 2400:3200::1
   direct-nameserver:
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
@@ -72,17 +77,39 @@ dns:
     ipcidr:
       - 240.0.0.0/4
 
-# ==================== TUN 模式（可选）====================
+# ==================== TUN 模式 ====================
 # 推荐通过环境变量 TUN_ENABLED=true 启用 TUN 模式，重启后自动恢复。
 # 注意：设置 TUN_ENABLED 后，下方手动配置将被覆盖，以环境变量为准。
 # 启用 TUN 模式还需要：Docker 容器的 NET_ADMIN 权限及 /dev/net/tun 设备。
 # 若通过 Dashboard UI 手动开启 TUN，重启后状态不会保留，建议使用 TUN_ENABLED。
+# dns-hijack 劫持所有 DNS 查询到 Mihomo，TUN 下必须设置否则 UDP 解析失败（不 bind 端口，不会冲突）
 # tun:
 #   enable: true
 #   stack: mixed          # 可选: system / gvisor / mixed
 #   auto-route: true
 #   auto-redirect: true
 #   auto-detect-interface: true
+#   dns-hijack:
+#     - any:53
+#     - tcp://any:53
+
+# ==================== Sniffer 嗅探（可选）====================
+# 自动识别 TLS/HTTP/QUIC 流量，使 UDP/QUIC 连接也能正确匹配分流规则
+# 推荐配合 TUN 模式使用，对 UDP（如 QUIC/HTTP3）有显著效果
+# sniffer:
+#   enable: true
+#   sniff:
+#     TLS: true
+#     HTTP: true
+#     QUIC: true
+#   force-dns-mapping: true
+#   parse-pure-ip: true
+#   skip-domain:
+#     - "*.lan"
+#     - "*.local"
+#     - "*.localhost"
+#     - "dns.google"
+#     - "push.*"
 
 # ==================== 代理节点 ====================
 proxies:

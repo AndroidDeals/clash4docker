@@ -4,13 +4,18 @@ services:
     container_name: glash
     restart: unless-stopped
 
-    # 网络模式: 使用 host 模式获得更好的性能，或使用 bridge 模式隔离
+    # 网络模式:
+    # - bridge（默认）: 端口隔离，但 TUN 模式 UDP 可能因 Docker NAT 冲突导致"找不到 IP"
+    # - host: TUN 模式 UDP 最佳，但端口直接暴露在宿主机
+    # 如果使用 TUN + UDP，建议取消下一行的注释
     # network_mode: host
 
     ports:
-      - '7890:7890' # HTTP 代理
-      - '7891:7891' # SOCKS5 代理
-      - '7892:7892' # 混合代理 (HTTP + SOCKS5)
+      - '7890:7890' # HTTP 代理 (TCP)
+      - '7891:7891' # SOCKS5 代理 (TCP+UDP)
+      - '7891:7891/udp'
+      - '7892:7892' # 混合代理 (TCP+UDP)
+      - '7892:7892/udp'
       - '9090:9090' # API 控制器 & Dashboard
 
     volumes:
@@ -40,13 +45,15 @@ services:
       - DNS_OVERRIDE=true
       # IPv6 开关
       - IPV6_ENABLED=true
+      # Sniffer 开关（嗅探 TLS/QUIC/UDP 流量，提升 UDP 识别）
+      - SNIFFER_ENABLED=true
 
 
-    # 如果需要 TUN 模式，取消下面的注释
-    # cap_add:
-    #   - NET_ADMIN
-    # devices:
-    #   - /dev/net/tun:/dev/net/tun
+    # TUN 模式需要以下权限（如启用 TUN_ENABLED=true 则必须取消注释）
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
 
     # 健康检查
     healthcheck:
