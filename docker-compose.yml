@@ -39,9 +39,9 @@ services:
       # - SUB_CRON=0 */6 * * *
       # Dashboard 登录密钥（会自动注入到配置文件中）
       # - SECRET=your-secret-here
-      # TUN 模式开关（同时需要取消下方 cap_add 和 devices 的注释）
-      - TUN_ENABLED=true
-      # DNS 覆写开关
+      # TUN 模式开关（启用需同时取消下方 cap_add/devices 注释）
+      # - TUN_ENABLED=true
+      # DNS 覆写开关（推荐启用，自动注入修复后的 DNS 配置）
       - DNS_OVERRIDE=true
       # IPv6 开关
       - IPV6_ENABLED=true
@@ -49,11 +49,12 @@ services:
       - SNIFFER_ENABLED=true
 
 
-    # TUN 模式需要以下权限（如启用 TUN_ENABLED=true 则必须取消注释）
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
+    # TUN 模式需要以下权限（如启用 TUN_ENABLED=true，取消下方注释）
+    # 注意: 如果宿主机没有 /dev/net/tun 设备或未加载 tun 模块，取消注释会导致容器启动失败
+    # cap_add:
+    #   - NET_ADMIN
+    # devices:
+    #   - /dev/net/tun:/dev/net/tun
 
     # 健康检查
     healthcheck:
