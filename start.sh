@@ -311,9 +311,6 @@ tun:
   auto-route: true
   auto-redirect: true
   auto-detect-interface: true
-  dns-hijack:
-    - any:53
-    - tcp://any:53
 EOF
         log_info "✅ tun 模式已启用"
     else
